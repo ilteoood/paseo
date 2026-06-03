@@ -397,28 +397,47 @@ describe("ClaudeAgentClient.listModels", () => {
   const logger = createTestLogger();
 
   test("returns hardcoded claude models", async () => {
-    const client = new ClaudeAgentClient({ logger, resolveBinary: async () => "/test/claude/bin" });
-    const models = await client.listModels({ cwd: "/tmp/claude-models", force: false });
+    // Use a clean CLAUDE_CONFIG_DIR so we don't pick up env-driven model
+    // entries from the host's ~/.claude/settings.json (e.g. third-party
+    // Anthropic-compatible gateways). The contract under test is the
+    // hardcoded first-party catalog.
+    const previousConfigDir = process.env.CLAUDE_CONFIG_DIR;
+    const emptyConfigDir = await fs.mkdtemp(path.join(os.tmpdir(), "paseo-claude-models-empty-"));
+    process.env.CLAUDE_CONFIG_DIR = emptyConfigDir;
+    try {
+      const client = new ClaudeAgentClient({
+        logger,
+        resolveBinary: async () => "/test/claude/bin",
+      });
+      const models = await client.listModels({ cwd: "/tmp/claude-models", force: false });
 
-    expect(models.map((m) => m.id)).toEqual([
-      "claude-opus-4-8[1m]",
-      "claude-opus-4-8",
-      "claude-opus-4-7[1m]",
-      "claude-opus-4-7",
-      "claude-opus-4-6[1m]",
-      "claude-opus-4-6",
-      "claude-sonnet-4-6[1m]",
-      "claude-sonnet-4-6",
-      "claude-haiku-4-5",
-    ]);
+      expect(models.map((m) => m.id)).toEqual([
+        "claude-opus-4-8[1m]",
+        "claude-opus-4-8",
+        "claude-opus-4-7[1m]",
+        "claude-opus-4-7",
+        "claude-opus-4-6[1m]",
+        "claude-opus-4-6",
+        "claude-sonnet-4-6[1m]",
+        "claude-sonnet-4-6",
+        "claude-haiku-4-5",
+      ]);
 
-    for (const model of models) {
-      expect(model.provider).toBe("claude");
-      expect(model.label.length).toBeGreaterThan(0);
+      for (const model of models) {
+        expect(model.provider).toBe("claude");
+        expect(model.label.length).toBeGreaterThan(0);
+      }
+
+      const defaultModel = models.find((m) => m.isDefault);
+      expect(defaultModel?.id).toBe("claude-opus-4-8");
+    } finally {
+      if (previousConfigDir === undefined) {
+        delete process.env.CLAUDE_CONFIG_DIR;
+      } else {
+        process.env.CLAUDE_CONFIG_DIR = previousConfigDir;
+      }
+      await fs.rm(emptyConfigDir, { recursive: true, force: true });
     }
-
-    const defaultModel = models.find((m) => m.isDefault);
-    expect(defaultModel?.id).toBe("claude-opus-4-8");
   });
 });
 
