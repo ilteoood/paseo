@@ -397,13 +397,12 @@ describe("ClaudeAgentClient.listModels", () => {
   const logger = createTestLogger();
 
   test("returns hardcoded claude models", async () => {
-    const previousConfigDir = process.env.CLAUDE_CONFIG_DIR;
     const emptyConfigDir = await fs.mkdtemp(path.join(os.tmpdir(), "paseo-claude-models-empty-"));
-    process.env.CLAUDE_CONFIG_DIR = emptyConfigDir;
     try {
       const client = new ClaudeAgentClient({
         logger,
         resolveBinary: async () => "/test/claude/bin",
+        configDir: emptyConfigDir,
       });
       const models = await client.listModels({ cwd: "/tmp/claude-models", force: false });
 
@@ -427,11 +426,6 @@ describe("ClaudeAgentClient.listModels", () => {
       const defaultModel = models.find((m) => m.isDefault);
       expect(defaultModel?.id).toBe("claude-opus-4-8");
     } finally {
-      if (previousConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR;
-      } else {
-        process.env.CLAUDE_CONFIG_DIR = previousConfigDir;
-      }
       await fs.rm(emptyConfigDir, { recursive: true, force: true });
     }
   });
