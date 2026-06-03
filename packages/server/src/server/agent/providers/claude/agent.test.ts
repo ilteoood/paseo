@@ -397,10 +397,6 @@ describe("ClaudeAgentClient.listModels", () => {
   const logger = createTestLogger();
 
   test("returns hardcoded claude models", async () => {
-    // Use a clean CLAUDE_CONFIG_DIR so we don't pick up env-driven model
-    // entries from the host's ~/.claude/settings.json (e.g. third-party
-    // Anthropic-compatible gateways). The contract under test is the
-    // hardcoded first-party catalog.
     const previousConfigDir = process.env.CLAUDE_CONFIG_DIR;
     const emptyConfigDir = await fs.mkdtemp(path.join(os.tmpdir(), "paseo-claude-models-empty-"));
     process.env.CLAUDE_CONFIG_DIR = emptyConfigDir;

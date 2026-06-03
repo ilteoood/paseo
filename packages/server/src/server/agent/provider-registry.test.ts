@@ -1126,8 +1126,6 @@ describe("model merging", () => {
   });
 
   test("built-in Claude models override replaces hardcoded first-party models (issue #1299)", async () => {
-    // Simulate the runtime catalog for the built-in Claude provider: nine
-    // first-party models discovered by getClaudeModelsWithSettings().
     mockState.runtimeModels.set("claude", [
       { provider: "claude", id: "claude-opus-4-8", label: "Opus 4.8", isDefault: true },
       { provider: "claude", id: "claude-opus-4-7", label: "Opus 4.7" },
@@ -1135,9 +1133,6 @@ describe("model merging", () => {
       { provider: "claude", id: "claude-haiku-4-5", label: "Haiku 4.5" },
     ]);
 
-    // User pointed Claude Code at a third-party Anthropic-compatible API and
-    // explicitly listed the models they want to pick from. The hardcoded
-    // first-party list must not bleed through.
     const registry = buildProviderRegistry(logger, {
       providerOverrides: {
         claude: {
