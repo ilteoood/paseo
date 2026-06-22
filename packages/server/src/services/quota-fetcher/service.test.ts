@@ -51,10 +51,7 @@ function writeKimiCredentials(dir: string, accessToken: string): void {
   );
 }
 
-function writeMiniMaxConfig(
-  dir: string,
-  payload: Record<string, unknown>,
-): void {
+function writeMiniMaxConfig(dir: string, payload: Record<string, unknown>): void {
   mkdirSync(join(dir, ".mmx"), { recursive: true });
   writeFileSync(join(dir, ".mmx", "config.json"), JSON.stringify(payload));
 }

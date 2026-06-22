@@ -3,10 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { Logger } from "pino";
 import { z } from "zod";
-import type {
-  ProviderUsage,
-  ProviderUsageWindow,
-} from "../../../server/messages.js";
+import type { ProviderUsage, ProviderUsageWindow } from "../../../server/messages.js";
 import type { ProviderApiFetch, ProviderUsageFetcher } from "../provider.js";
 import {
   ApiNumberSchema,
@@ -103,7 +100,10 @@ function toneForStatus(status: number | null | undefined): ProviderUsageWindow["
   return "ok";
 }
 
-function toIntervalWindow(modelName: string, model: MiniMaxModelRemain): ProviderUsageWindow | null {
+function toIntervalWindow(
+  modelName: string,
+  model: MiniMaxModelRemain,
+): ProviderUsageWindow | null {
   const total = model.current_interval_total_count ?? null;
   const used = model.current_interval_usage_count ?? null;
   const remainingPercent = model.current_interval_remaining_percent ?? null;
@@ -168,16 +168,12 @@ export class MiniMaxQuotaProvider implements ProviderUsageFetcher {
     const auth = await this.resolveAuth();
     if (!auth) return unavailableUsage(this);
 
-    const res = await fetchProviderApi(
-      this.fetchApi,
-      `${auth.baseUrl}/v1/token_plan/remains`,
-      {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-          Accept: "application/json",
-        },
+    const res = await fetchProviderApi(this.fetchApi, `${auth.baseUrl}/v1/token_plan/remains`, {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+        Accept: "application/json",
       },
-    );
+    });
 
     if (!res.ok) {
       this.logger.debug({ status: res.status }, "MiniMax usage fetch failed");
