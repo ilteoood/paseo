@@ -97,6 +97,12 @@ function epochMsToIso(value: number | null | undefined): string | null {
   return new Date(value).toISOString();
 }
 
+function toneForStatus(status: number | null | undefined): ProviderUsageWindow["tone"] {
+  if (status === 2) return "danger";
+  if (status === 3) return "default";
+  return "ok";
+}
+
 function toIntervalWindow(modelName: string, model: MiniMaxModelRemain): ProviderUsageWindow | null {
   const total = model.current_interval_total_count ?? null;
   const used = model.current_interval_usage_count ?? null;
@@ -109,14 +115,12 @@ function toIntervalWindow(modelName: string, model: MiniMaxModelRemain): Provide
           total,
         );
   if (usedPct === null) return null;
-  const status = model.current_interval_status;
-  const tone = status === 2 ? "danger" : status === 3 ? "default" : "ok";
   return windowFromUsedPct({
     id: `interval_${modelName}`,
     label: `${modelName} · Interval`,
     utilizationPct: usedPct,
     resetsAt: epochMsToIso(model.end_time),
-    tone,
+    tone: toneForStatus(model.current_interval_status),
   });
 }
 
@@ -131,14 +135,12 @@ function toWeeklyWindow(modelName: string, model: MiniMaxModelRemain): ProviderU
     usedPct = computeUsedPct(total - used, total);
   }
   if (usedPct === null) return null;
-  const status = model.current_weekly_status;
-  const tone = status === 2 ? "danger" : status === 3 ? "default" : "ok";
   return windowFromUsedPct({
     id: `weekly_${modelName}`,
     label: `${modelName} · Weekly`,
     utilizationPct: usedPct,
     resetsAt: epochMsToIso(model.weekly_end_time),
-    tone,
+    tone: toneForStatus(model.current_weekly_status),
   });
 }
 
